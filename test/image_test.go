@@ -6,13 +6,13 @@ import (
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype/truetype"
 	"github.com/rwcarlsen/goexif/exif"
+	"github.com/wxxhub/watermark/draw"
+	exif2 "github.com/wxxhub/watermark/exif"
 	"golang.org/x/image/font/gofont/goregular"
 	"image/png"
 	"log"
 	"os"
 	"time"
-	"watermark/draw"
-	exif2 "watermark/exif"
 
 	//"golang.org/x/image/font"
 	"testing"
@@ -56,7 +56,7 @@ func TestDrawText(t *testing.T) {
 }
 
 func TestDrawCameraModel(t *testing.T) {
-	i, err := draw.CameraModel("LICE_7M4", time.Now().Format("2006.01.02 15:04:05"))
+	i, err := draw.CameraModel("LICE-7M4", time.Now().Format("2006.01.02 15:04:05"))
 	if err != nil {
 		t.Fatal(err)
 	}

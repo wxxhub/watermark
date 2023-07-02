@@ -4,10 +4,10 @@ import (
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
+	"github.com/wxxhub/watermark/ttf"
 	"image"
 	"image/color"
 	"sync"
-	"watermark/ttf"
 )
 
 const Height = 400
@@ -45,7 +45,7 @@ var fontOnce sync.Once
 
 func getFont() *truetype.Font {
 	fontOnce.Do(func() {
-		fontT, err := freetype.ParseFont(ttf.WenKaiLight)
+		fontT, err := freetype.ParseFont(ttf.WenKaiRegular)
 		if err != nil {
 			panic(err)
 		}
