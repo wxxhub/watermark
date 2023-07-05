@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	Height  = 100
-	Padding = 100
+	Height  = 400
+	Padding = 300
 )
 
 var (
@@ -59,8 +59,9 @@ func CameraModel(model, photoTime string) (image.Image, error) {
 	var (
 		width = Height * 5
 		// (Height-100)/2.5*1.5
-		mainSize = Height / 2.5 * 1.5
-		subSize  = Height / 2.5
+		hp       = Height * 0.1
+		mainSize = (Height - hp) / 2.5 * 1.5
+		subSize  = (Height - hp) / 2.5
 
 		mainFace = truetype.NewFace(getFont(), &truetype.Options{Size: mainSize})
 		subFace  = truetype.NewFace(getFont(), &truetype.Options{Size: subSize})
@@ -73,22 +74,23 @@ func CameraModel(model, photoTime string) (image.Image, error) {
 	// draw main
 	dc.SetColor(mainColor)
 	dc.SetFontFace(mainFace)
-	dc.DrawStringWrapped(model, 0, Padding, -0.1, 0, float64(width), 1.5, gg.AlignLeft)
+	dc.DrawStringWrapped(model, 0, Padding-hp/2, -0.1, 0, float64(width), 1.5, gg.AlignLeft)
 
 	// draw sub
 	dc.SetColor(subColor)
 	dc.SetFontFace(subFace)
-	dc.DrawStringWrapped(photoTime, 0, Height/2+Padding, -0.1, 0, float64(width), 1.5, gg.AlignLeft)
+	dc.DrawStringWrapped(photoTime, 0, Height/2+Padding+hp/2, -0.1, 0, float64(width), 1.5, gg.AlignLeft)
 
 	return dc.Image(), nil
 }
 
 func Parameter(sign image.Image, param, author string) (image.Image, error) {
 	var (
-		width = Height * 11
+		width = Height*11 + sign.Bounds().Dx()
 		// (Height-100)/2.5*1.5
-		mainSize = Height / 2.5 * 1.5
-		subSize  = Height / 2.5
+		hp       = Height * 0.1
+		mainSize = (Height - hp) / 2.5 * 1.5
+		subSize  = (Height - hp) / 2.5
 
 		mainFace = truetype.NewFace(getFont(), &truetype.Options{Size: mainSize})
 		subFace  = truetype.NewFace(getFont(), &truetype.Options{Size: subSize})
@@ -105,24 +107,24 @@ func Parameter(sign image.Image, param, author string) (image.Image, error) {
 	dc.DrawImage(rSign, 0, Padding)
 
 	dc.SetColor(subColor)
-	dc.SetLineWidth(5)
+	dc.SetLineWidth(10)
 	dc.DrawLine(rSignW+20, Padding, rSignW+20, Height+Padding)
 	dc.Stroke()
 
 	// draw main
 	dc.SetColor(mainColor)
 	dc.SetFontFace(mainFace)
-	dc.DrawStringWrapped(param, rSignW+40, Padding, 0, 0, float64(width), 1.5, gg.AlignLeft)
+	dc.DrawStringWrapped(param, rSignW+40, Padding-hp/2, 0, 0, float64(width), 1.5, gg.AlignLeft)
 
 	// draw sub
 	dc.SetColor(subColor)
 	dc.SetFontFace(subFace)
-	dc.DrawStringWrapped(author, rSignW+40, Height/2+Padding, 0, 0, float64(width), 1.5, gg.AlignLeft)
+	dc.DrawStringWrapped(author, rSignW+40, Height/2+Padding+hp/2, 0, 0, float64(width), 1.5, gg.AlignLeft)
 
 	return dc.Image(), nil
 }
 
-func MarkColumn(sign image.Image, exif *exif.Exif, author string, width int) (image.Image, error) {
+func MarkColumn(sign image.Image, exif *exif.Exif, author string, width, height int) (image.Image, error) {
 	mI, err := CameraModel(exif.Model, exif.DateTime.Format("2006.01.02 15:04:05"))
 	if err != nil {
 		return nil, err
@@ -134,17 +136,21 @@ func MarkColumn(sign image.Image, exif *exif.Exif, author string, width int) (im
 	}
 
 	oW := mI.Bounds().Dx() + pI.Bounds().Dx()
-	if oW > width {
-		width = oW + 1024
-	} else {
-
+	if oW < width {
+		oW = width
 	}
-	dc := gg.NewContext(width, Height+2*Padding)
+
+	li := (Height + 2*Padding) * 10
+	if oW < li {
+		oW = li
+	}
+
+	dc := gg.NewContext(oW, Height+2*Padding)
 	dc.SetRGB255(255, 255, 255)
 	dc.Clear()
 
 	dc.DrawImage(mI, 0, 0)
-	dc.DrawImage(pI, width-pI.Bounds().Dx(), 0)
+	dc.DrawImage(pI, oW-pI.Bounds().Dx(), 0)
 
-	return dc.Image(), nil
+	return resize.Resize(uint(width), 0, dc.Image(), resize.Lanczos3), nil
 }

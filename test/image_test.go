@@ -1,11 +1,11 @@
 package test
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype/truetype"
-	"github.com/nfnt/resize"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/wxxhub/watermark/draw"
 	exif2 "github.com/wxxhub/watermark/exif"
@@ -209,7 +209,7 @@ func TestDrawMarkColumn(t *testing.T) {
 	}
 
 	e.FNumber = 4
-	i, err := draw.MarkColumn(markE, e, "by 奔跑的兔", 2048)
+	i, err := draw.MarkColumn(markE, e, "by 奔跑的兔", 2048, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -240,28 +240,27 @@ func TestDrawMarkColumn2(t *testing.T) {
 	}
 
 	e.FNumber = 4
-	mc, err := draw.MarkColumn(markE, e, "by 奔跑的兔", 2048)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	f2, err := os.Open("../demo/demo.jpg")
 	if err != nil {
 		t.Fatal(err)
 	}
-	ej, err := jpeg.Decode(f2)
+	ej, err := jpeg.Decode(bufio.NewReader(f2))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	mcR := resize.Resize(uint(ej.Bounds().Dx()), 0, mc, resize.Lanczos3)
+	mc, err := draw.MarkColumn(markE, e, "by 奔跑的兔", ej.Bounds().Dx(), ej.Bounds().Dy())
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	dc := gg.NewContext(ej.Bounds().Dx(), ej.Bounds().Dy()+mcR.Bounds().Dy())
+	dc := gg.NewContext(ej.Bounds().Dx(), ej.Bounds().Dy()+mc.Bounds().Dy())
 	dc.SetRGB255(255, 255, 255)
 	dc.Clear()
 
 	dc.DrawImage(ej, 0, 0)
-	dc.DrawImage(mcR, 0, ej.Bounds().Dy())
+	dc.DrawImage(mc, 0, ej.Bounds().Dy())
 
 	ff, err := os.Create("test_mark_colum.jpg")
 	if err != nil {
